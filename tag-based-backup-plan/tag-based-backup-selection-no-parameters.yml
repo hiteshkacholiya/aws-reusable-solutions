@@ -1,0 +1,59 @@
+Resources:
+  BackupRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: SampleBackupRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - backup.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - >-
+          arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup
+        
+  BackupVault:
+    Type: "AWS::Backup::BackupVault"
+    Properties:
+      BackupVaultName: "BackupVault-01"
+      AccessPolicy: 
+        Version: '2012-10-17'
+        Statement:
+        -
+            Sid: 'Vault-Access-Policy'
+            Effect: Deny
+            Principal: "*"
+            Action: "backup:DeleteRecoveryPoint"
+            Resource:
+              - "*"
+  BackupPlan:
+    Type: "AWS::Backup::BackupPlan"
+    Properties:
+      BackupPlan:
+        BackupPlanName: "BackupPlan-01"
+        BackupPlanRule:
+          -
+            RuleName: "BackupRule-01"
+            TargetBackupVault: !Ref BackupVault
+            ScheduleExpression: "cron(0 0 ? * * *)"
+            Lifecycle:
+              DeleteAfterDays: 31
+    DependsOn: BackupVault
+        
+  TagBasedBackupSelection:
+    Type: "AWS::Backup::BackupSelection"
+    Properties:
+      BackupSelection:
+        SelectionName: "TagBasedBackupSelection-01"
+        IamRoleArn:  !GetAtt BackupRole.Arn 
+        ListOfTags:
+         -
+           ConditionType: "STRINGEQUALS"
+           ConditionKey: "backup-plan" 
+           ConditionValue: "BackupPlan-01-31days-daily"
+      BackupPlanId: !Ref BackupPlan
+    DependsOn: BackupPlan

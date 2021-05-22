@@ -1,2 +1,5 @@
 # aws-reusable-solutions
-Repository for custom AWS Solutions to be used for provisioning, automations, general solutions etc. 
+### This is a repository for custom AWS Solutions to be used for provisioning, automations, general solutions etc. 
+
+### Folders in the repository:
+### 1. tag-based-backup-plan
